@@ -12,7 +12,7 @@ const events = new loki(eventsPath, {
     autoload: true,
     autoloadCallback: () => {
         if (!events.getCollection('events')) {
-            events.addCollection('events', { indices: ['channelId'] });
+            events.addCollection('events', { indices: ['userId', 'channelId'] });
         }
 
         resolveEvents();

@@ -92,7 +92,7 @@ module.exports = {
 		delete cacheData.expiresAt;
 		delete cacheData.totalMs;
 		await Database.insertEvent({
-			channelId: interaction.channel.id,
+			channelId: interaction?.channel?.id ?? null,
 			id: ulid(),
 			endTime: endTime,
 			...cacheData

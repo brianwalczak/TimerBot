@@ -89,7 +89,7 @@ module.exports = {
         delete preset.tag;
         delete preset.totalMs;
         await Database.insertEvent({
-            channelId: interaction.channel.id,
+            channelId: interaction?.channel?.id ?? null,
             userId: interaction.user.id,
             id: ulid(),
             endTime: endTime,

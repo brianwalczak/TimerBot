@@ -115,7 +115,7 @@ function cmdHandler(type) {
                 delete cacheData.tz;
 
                 await Database.insertEvent({
-                    channelId: interaction.channel.id,
+                    channelId: interaction?.channel?.id ?? null,
                     id: ulid(),
                     ...cacheData
                 });

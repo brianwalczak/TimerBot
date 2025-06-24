@@ -30,14 +30,28 @@ async function startDatabase(manager) {
                 embed.addFields({ name: "📜 Description", value: event.desc || "No description provided.", inline: false });
             }
 
-            for (const shard of manager.shards.values()) {
-                shard.send({
-                    type: 'channel',
-                    method: 'cache',
-                    id: event.channelId,
-                    content: `||${ping}||`,
-                    embeds: [embed.toJSON()]
-                });
+            if (event.channelId) {
+                for (const shard of manager.shards.values()) {
+                    shard.send({
+                        type: 'channel',
+                        method: 'cache',
+                        id: event.channelId,
+                        content: `||${ping}||`,
+                        embeds: [embed.toJSON()]
+                    });
+                }
+            } else if(event.userId) {
+                const main = manager.shards.get(0);
+
+                if(main) {
+                    main.send({
+                        type: 'user',
+                        method: 'api',
+                        id: event.userId,
+                        content: `||${ping}||`,
+                        embeds: [embed.toJSON()]
+                    });
+                }
             }
                 
             events.remove(event);
