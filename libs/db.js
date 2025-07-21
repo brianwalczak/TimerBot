@@ -35,6 +35,13 @@ const config = new loki(configPath, {
     autosaveInterval: 5000
 });
 
+async function getUsers() {
+    await configReady;
+
+    const users = config.getCollection('users');
+    return users;
+}
+
 async function getUser(userId) {
     await configReady;
 
@@ -136,18 +143,30 @@ async function setUserTimezone(userId, timezone) {
   return true;
 }
 
-async function setPremiumUser(userId, order) {
+async function setPremiumUser(userId, order, preventOverwrite = false) {
   await configReady;
 
   const users = config.getCollection('users');
-  const user = users.by('id', userId);
+  let user = users.by('id', userId);
 
   if (!user) {
-    users.insert({ id: userId, presets: [], premium: order });
-  } else if (user.premium === null || user.premium === undefined) {
-    users.update({ ...user, premium: order });
-  } else {
+    // Only insert the new user if they provided a valid order
+    if(order !== null && order !== undefined) {
+      users.insert({ id: userId, presets: [], premium: order });
+    }
+  } else if(preventOverwrite && (user.premium !== null && user.premium !== undefined)) {
+    // If preventOverwrite is true and the user already has a premium status, do not overwrite it
     return false;
+  } else {
+    if(order === null || order === undefined) {
+      // If they didn't specify a valid order, remove the premium status
+      delete user.premium;
+    } else {
+      // Otherwise set the premium status to the provided order
+      user.premium = order;
+    }
+
+    users.update(user);
   }
 
   return true;
@@ -177,4 +196,4 @@ process.on('SIGINT', async () => {
   }
 });
 
-module.exports = { getUser, getEvents, getEvent, deleteEvent, insertEvent, getPresets, getPreset, deletePreset, insertPreset, setUserTimezone, setPremiumUser, isUserPremium };
+module.exports = { getUsers, getUser, getEvents, getEvent, deleteEvent, insertEvent, getPresets, getPreset, deletePreset, insertPreset, setUserTimezone, setPremiumUser, isUserPremium };

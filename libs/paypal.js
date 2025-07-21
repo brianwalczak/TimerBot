@@ -92,7 +92,7 @@ async function deliverOrder(res, sendDM = false) {
     const [tag, userId, timestamp] = res.purchase_units?.[0]?.reference_id?.split('+') || [];
     if(tag !== config.paypal?.reference || !userId || isNaN(userId)) return false;
 
-    const setPremium = await setPremiumUser(userId, res.id);
+    const setPremium = await setPremiumUser(userId, res.id, true);
     if(setPremium === false) return false; // user has already claimed their tip
 
     if(sendDM && manager) {

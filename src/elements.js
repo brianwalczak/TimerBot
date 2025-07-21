@@ -120,6 +120,22 @@ const Modals = {
 
     modal.addComponents(new ActionRowBuilder().addComponents(amountInput));
     return modal;
+  },
+  admin: {
+    eval() {
+      const modal = new ModalBuilder()
+        .setCustomId('admin_eval')
+        .setTitle('🧪 Run Test');
+
+      const codeInput = new TextInputBuilder()
+        .setCustomId('code')
+        .setLabel('JS Code')
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(true);
+
+      modal.addComponents(new ActionRowBuilder().addComponents(codeInput));
+      return modal;
+    }
   }
 };
 
@@ -176,6 +192,58 @@ const Embeds = {
       ].join("\n"));
 
     return embed;
+  },
+  admin: {
+    stats({ totalGuilds, totalUsers, premiumUsers, overrideUsers, events }) {
+      const embed = new EmbedBuilder()
+        .setTitle("📊 Bot Statistics")
+        .setColor(0xff0000)
+        .setTimestamp()
+        .addFields(
+          { name: "🌐 Total Servers", value: `${totalGuilds}`, inline: true },
+          { name: "👥 Total Users", value: `${totalUsers}`, inline: true },
+          { name: "⭐ Premium Users", value: `${premiumUsers}${overrideUsers > 0 ? ` **(+${overrideUsers} overrides)**` : ''}`, inline: true },
+          { name: "⏲️ Total Timers", value: `${events.filter(e => e.type === 'timer').length}`, inline: true },
+          { name: "⏰ Total Alarms", value: `${events.filter(e => e.type === 'alarm').length}`, inline: true },
+          { name: "📝 Total Reminders", value: `${events.filter(e => e.type === 'reminder').length}`, inline: true }
+        )
+        .setFooter({ text: "Admin Panel" });
+
+      return embed;
+    },
+    eval({ input, output, ping, type }) {
+      const embed = new EmbedBuilder()
+        .setTitle("🧪 Test Results")
+        .setColor(0x00ff00)
+        .setTimestamp()
+        .setDescription(`Evaluated in: *${ping.toFixed(1)}ms*`)
+        .addFields(
+          { name: ":inbox_tray: Input", value: `\`\`\`${input}\`\`\`` },
+          { name: ":outbox_tray: Output", value: `\`\`\`${output}\`\`\`` },
+          { name: "Type", value: `\`\`\`${type}\`\`\`` }
+        );
+
+      return embed;
+    },
+    premium({ userId, isEnabled, admin }) {
+      const embed = new EmbedBuilder()
+        .setTitle(`⭐ Premium Details`)
+        .setColor(0xFFD700)
+        .addFields(
+          { name: "Target", value: `<@${userId}>`, inline: true },
+          { name: "Premium", value: `${isEnabled ? "✅ Active" : "❌ Inactive"}`, inline: true }
+        )
+        .setFooter({ text: `Requested by ${admin.tag}`, iconURL: admin.displayAvatarURL() })
+        .setTimestamp();
+
+      if(isEnabled) {
+        embed.addFields(
+          { name: "Method", value: `${isEnabled === 'ADMIN_OVERRIDE' ? "👑 Admin Override" : "⭐ Regular"}`, inline: false }
+        );
+      }
+
+      return embed;
+    }
   }
 };
 
@@ -217,6 +285,16 @@ const Buttons = {
         .setLabel('Custom')
         .setStyle(ButtonStyle.Secondary)
     );
+  },
+  admin: {
+    premium({ userId, isEnabled }) {
+      return new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`admin_premium+u_${userId}`)
+          .setLabel(isEnabled ? 'Disable Premium' : 'Enable Premium')
+          .setStyle(isEnabled ? ButtonStyle.Danger : ButtonStyle.Success)
+      );
+    }
   }
 };
 
