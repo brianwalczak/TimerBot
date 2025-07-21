@@ -194,7 +194,7 @@ const Embeds = {
     return embed;
   },
   admin: {
-    stats({ totalGuilds, totalUsers, premiumUsers, overrideUsers, events }) {
+    stats({ totalGuilds, totalUsers, premiumUsers, overrideUsers, events, largestCount, largestName }) {
       const embed = new EmbedBuilder()
         .setTitle("📊 Bot Statistics")
         .setColor(0xff0000)
@@ -205,7 +205,9 @@ const Embeds = {
           { name: "⭐ Premium Users", value: `${premiumUsers}${overrideUsers > 0 ? ` **(+${overrideUsers} overrides)**` : ''}`, inline: true },
           { name: "⏲️ Total Timers", value: `${events.filter(e => e.type === 'timer').length}`, inline: true },
           { name: "⏰ Total Alarms", value: `${events.filter(e => e.type === 'alarm').length}`, inline: true },
-          { name: "📝 Total Reminders", value: `${events.filter(e => e.type === 'reminder').length}`, inline: true }
+          { name: "📝 Total Reminders", value: `${events.filter(e => e.type === 'reminder').length}`, inline: true },
+          { name: "👑 Largest Server", value: `${largestName}`, inline: true },
+          { name: "👥 Members", value: `${largestCount}`, inline: true }
         )
         .setFooter({ text: "Admin Panel" });
 

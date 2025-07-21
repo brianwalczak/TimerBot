@@ -39,23 +39,45 @@ module.exports = {
 
       let totalGuilds = client.guilds.cache.size;
       let totalUsers = 0;
+      let largestCount = 0;
+      let largestName = '';
       if (client.shard) {
         const guildCounts = await client.shard.fetchClientValues('guilds.cache.size');
         totalGuilds = guildCounts.reduce((acc, count) => acc + count, 0);
 
-        const shardUsers = await client.shard.broadcastEval(c => {
+        const shardResults = await client.shard.broadcastEval(c => {
           let users = 0;
+          let largest = { count: 0, name: '' };
           for (const guild of c.guilds.cache.values()) {
-            users += guild.memberCount || 0;
+            const memberCount = guild.memberCount || 0;
+            users += memberCount;
+
+            if (memberCount > largest.count) {
+              largest.count = memberCount;
+              largest.name = guild.name;
+            }
           }
 
-          return users;
+          return { users, largest };
         });
 
-        totalUsers = shardUsers.reduce((acc, users) => acc + users, 0);
+        for (const result of shardResults) {
+          totalUsers += result.users;
+
+          if (result.largest.count > largestCount) {
+            largestCount = result.largest.count;
+            largestName = result.largest.name;
+          }
+        }
       } else {
         for (const guild of client.guilds.cache.values()) {
-          totalUsers += guild.memberCount || 0;
+          const memberCount = guild.memberCount || 0;
+          totalUsers += memberCount;
+
+          if (memberCount > largestCount) {
+            largestCount = memberCount;
+            largestName = guild.name;
+          }
         }
       }
 
@@ -80,7 +102,9 @@ module.exports = {
         totalUsers,
         premiumUsers,
         overrideUsers,
-        events
+        events,
+        largestCount,
+        largestName
       });
 
       interaction.editReply({
