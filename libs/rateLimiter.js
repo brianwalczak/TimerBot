@@ -12,7 +12,7 @@ const limits = [ // only these are rate-limited
 
 const quotas = {
   "premium": 200,
-  "default": 5
+  "default": 15
 };
 
 async function getEventsQuota(userId) {
