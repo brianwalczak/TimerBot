@@ -73,8 +73,7 @@ module.exports = {
             endTime: event.endTime,
             ...(event.timeString && { timeString: event.timeString }),
             ping: event.ping ?? null,
-            type: event.type,
-            
+            type: event.type
         })), null, 2);
     } else if(format === 'ics') {
         const events = userEvents.map(event => ({

@@ -7,7 +7,9 @@ const limits = [ // only these are rate-limited
   { command: 'alarm', timeout: 5000 },
   { command: 'reminder', timeout: 5000 },
   { command: 'presets run', timeout: 5000 },
-  { command: 'presets create', timeout: 15000 }
+  { command: 'presets create', timeout: 15000 },
+  { command: 'import', timeout: 15000 },
+  { command: 'export', timeout: 15000 }
 ];
 
 const quotas = {
@@ -22,12 +24,23 @@ async function getEventsQuota(userId) {
   return userEvents.length;
 }
 
-async function isMaxQuota(userId, commandName, premium) {
+async function isMaxQuota(userId, commandName, premium = null) {
+  if(!premium) premium = await isUserPremium(userId);
+
   const trackCmds = ['timer', 'alarm', 'reminder', 'presets run'];
   if (!trackCmds.includes(commandName)) return false;
 
   const quota = premium ? quotas.premium : quotas.default;
   return ((await getEventsQuota(userId)) >= quota) ? quota : false; // check if the user reached the maximum quota
+}
+
+async function remainingQuota(userId, premium = null) {
+  if(!premium) premium = await isUserPremium(userId);
+
+  const quota = premium ? quotas.premium : quotas.default;
+  const events = await getEventsQuota(userId);
+
+  return quota - events; // return the remaining quota for the user
 }
 
 function isRateLimited(userId, commandName, premium) {
@@ -62,4 +75,4 @@ async function checkUserLimits(userId, commandName) {
 }
 
 console.log(`${chalk.blue('[RATE LIMITING]')} Rate limiting and quotas initialized successfully.`);
-module.exports = { checkUserLimits };
+module.exports = { checkUserLimits, remainingQuota };
