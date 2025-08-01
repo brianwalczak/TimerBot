@@ -79,5 +79,10 @@ npm install
 node .
 ```
 
+### Notes
+Timer Bot uses both the built-in `Date` object in Node.js and the `luxon` library for handling time calculation. To maintain consistency and avoid issues with timezone (such as conversion to the local server time), it relies on Unix epoch timestamps, which represent time in UTC. This ensures all times are standardized to UTC regardless of the server's local timezone. For alarms and reminders, which require a date and time input, Timer Bot uses `luxon` to correctly handle the event data with the user's local timezone.
+
+Before any event is stored in the database, **all** event types are converted to milliseconds (Unix epoch timestamps), ensuring every stored time is in UTC.
+
 ## Contributions
 If you'd like to contribute to this project, please create a pull request [here](https://github.com/BrianWalczak/TimerBot/pulls). You can submit your feedback or any bugs that you find on the <a href='https://github.com/BrianWalczak/TimerBot/issues'>issues page</a>. Contributions are highly appreciated and will help us keep this project up-to-date!
