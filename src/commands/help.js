@@ -18,6 +18,7 @@ module.exports = {
         { name: "/presets run", value: "Run a previously saved preset by its custom tag.", inline: false },
         { name: "/list events", value: "View all active timers, alarms, and reminders.", inline: false },
         { name: "/list presets", value: "View all saved timer presets.", inline: false },
+        { name: "/export", value: "Export all of your upcoming events as a .json or .ics file.", inline: false },
         { name: "/timezone", value: "Set your time zone for accurate reminders and alarms.", inline: false },
         { name: "/status", value: "Check the bot’s uptime, memory usage, and server count.", inline: false },
         { name: "/vote", value: "Support Timer Bot by voting on Top.gg and others!", inline: false },

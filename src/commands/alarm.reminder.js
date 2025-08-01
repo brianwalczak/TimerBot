@@ -12,7 +12,7 @@ function createDate(date, time, tz) {
     const localDate = DateTime.fromObject({ year, month, day, hour, minute }, { zone: tz });
 
     if (!localDate.isValid) return null;
-    return localDate.toUTC().toMillis();
+    return localDate.toMillis();
   } catch (error) {
     return null;
   }
@@ -108,7 +108,8 @@ function cmdHandler(type) {
                 }
                 
                 const cacheData = await Cache.getCache(flow);
-                const { embed } = Embeds.event({ type, user: interaction.user, data: cacheData });
+                const eventId = ulid();
+                const { embed, components } = Embeds.event({ type, user: interaction.user, data: cacheData, eventId });
                 await Cache.clearCache(flow);
 
                 delete cacheData.expiresAt;
@@ -116,7 +117,7 @@ function cmdHandler(type) {
 
                 await Database.insertEvent({
                     channelId: interaction?.channel?.id ?? null,
-                    id: ulid(),
+                    id: eventId,
                     ...cacheData
                 });
 
@@ -125,7 +126,7 @@ function cmdHandler(type) {
 
                 await interaction[replied ? 'editReply' : 'reply']({
                     embeds: [embed],
-                    components: []
+                    components: components
                 });
             });
 

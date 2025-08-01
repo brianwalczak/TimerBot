@@ -85,7 +85,8 @@ module.exports = {
 		}
 
 		const cacheData = await Cache.getCache(flow);
-		const { embed } = Embeds.event({ type: 'timer', user: interaction.user, data: cacheData });
+		const eventId = ulid();
+		const { embed, components } = Embeds.event({ type: 'timer', user: interaction.user, data: cacheData, eventId });
 		const endTime = (Date.now() + cacheData.totalMs);
 		await Cache.clearCache(flow);
 
@@ -93,7 +94,7 @@ module.exports = {
 		delete cacheData.totalMs;
 		await Database.insertEvent({
 			channelId: interaction?.channel?.id ?? null,
-			id: ulid(),
+			id: eventId,
 			endTime: endTime,
 			...cacheData
 		});
@@ -102,7 +103,7 @@ module.exports = {
 		embed.setDescription(`Your timer is currently running and will end <t:${Math.floor(endTime / 1000)}:R>.`);
 		await interaction[replied ? 'editReply' : 'reply']({
 			embeds: [embed],
-			components: []
+			components: components
 		});
 	});
 

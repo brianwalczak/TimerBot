@@ -85,25 +85,26 @@ module.exports = {
         }
 
         const endTime = (Date.now() + preset.totalMs);
+        const eventId = ulid();
 
         delete preset.tag;
         delete preset.totalMs;
         await Database.insertEvent({
             channelId: interaction?.channel?.id ?? null,
             userId: interaction.user.id,
-            id: ulid(),
+            id: eventId,
             endTime: endTime,
             ...preset,
             type: 'timer'
         });
 
-        const { embed } = Embeds.event({ type: 'timer', user: interaction.user, data: preset });
+        const { embed, components } = Embeds.event({ type: 'timer', user: interaction.user, data: preset, eventId });
         embed.setTitle("✅ Preset Loaded");
         embed.setDescription(`Your preset has started successfully and will end <t:${Math.floor(endTime / 1000)}:R>.`);
 
 		await interaction.reply({
 			embeds: [embed],
-			components: []
+			components: components
 		});
     }
   },

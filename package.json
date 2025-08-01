@@ -28,6 +28,7 @@
     "discord-api-types": "^0.38.11",
     "discord.js": "^14.19.3",
     "express": "^5.1.0",
+    "ics": "^3.8.1",
     "lokijs": "^1.5.12",
     "luxon": "^3.6.1",
     "ulid": "^3.0.1"

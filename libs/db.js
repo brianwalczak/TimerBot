@@ -58,11 +58,13 @@ async function getEvents(userId = null) {
     return collection.find({ userId, endTime: { '$gt': Date.now() } }) || [];
 }
 
-async function getEvent(userId, eventId) {
+async function getEvent(userId = null, eventId) {
     await eventsReady;
 
     const collection = events.getCollection('events');
-    return collection.findOne({ userId: userId, id: eventId });
+    const query = userId ? { userId, id: eventId } : { id: eventId };
+
+    return collection.findOne(query);
 }
 
 async function deleteEvent(event) {

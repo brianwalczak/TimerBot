@@ -140,7 +140,7 @@ const Modals = {
 };
 
 const Embeds = {
-  event({ type, flow = null, user, data }) {
+  event({ type, flow = null, user, data, eventId = null }) {
     const embed = new EmbedBuilder()
       .setColor(0x5865F2)
       .setFooter({ text: `Requested by ${user.tag}`, iconURL: user.displayAvatarURL() })
@@ -174,10 +174,15 @@ const Embeds = {
 
       embed.addFields(fields);
     }
-    if(!flow) return { embed };
 
-    const list = Buttons.confirm(flow, type);
-    return { embed, components: [list] };
+    let buttons;
+    if(flow) {
+      buttons = Buttons.confirm(flow, type);
+    } else {
+      buttons = Buttons.ics(eventId);
+    }
+
+    return { embed, components: (buttons ? [buttons] : []) };
   },
   tipClaimed({ order }) {
     const price = order?.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value;
@@ -286,6 +291,16 @@ const Buttons = {
         .setCustomId('tipCustom')
         .setLabel('Custom')
         .setStyle(ButtonStyle.Secondary)
+    );
+  },
+  ics(eventId) {
+    if(!eventId) return null;
+
+    return new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId(`ics+e_${eventId}`)
+        .setLabel('📅 Add to Calendar')
+        .setStyle(ButtonStyle.Primary)
     );
   },
   admin: {
