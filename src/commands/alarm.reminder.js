@@ -45,7 +45,7 @@ function cmdHandler(type) {
 
             await Cache.setCache(flow, {
                 ping: interaction.options.getString("ping") ?? null,
-                userId: interaction.user.id,
+                userId: interaction.user.id, // must keep (prevents other users from tampering with the flow)
                 channelId: channel?.id ?? interaction?.channel?.id ?? null,
                 tz: user.timezone // include user timezone in cache
             }, (60000 * 5));

@@ -72,7 +72,7 @@ module.exports = {
         await Cache.setCache(flow, {
             tag: tag,
 		    ping: interaction.options.getString("ping") ?? null,
-		    userId: interaction.user.id
+		    userId: interaction.user.id // must keep (prevents other users from tampering with the flow)
 	    }, (60000 * 5));
 
         const modal = Modals.timer(flow).setCustomId(`createPreset+${flow}`);
