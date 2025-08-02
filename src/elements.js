@@ -121,6 +121,28 @@ const Modals = {
     modal.addComponents(new ActionRowBuilder().addComponents(amountInput));
     return modal;
   },
+  convert(flow) {
+    const modal = new ModalBuilder()
+      .setCustomId(`convert+${flow}`)
+      .setTitle('Convert Time Zone');
+
+    const dateInput = new TextInputBuilder()
+      .setCustomId('date')
+      .setLabel('Date (MM-DD-YYYY)')
+      .setStyle(TextInputStyle.Short)
+      .setPlaceholder('e.g. 07-04-2025')
+      .setRequired(true);
+
+	  const timeInput = new TextInputBuilder()
+      .setCustomId('time')
+      .setLabel('Time (HH:MM, 24hr format)')
+      .setStyle(TextInputStyle.Short)
+      .setPlaceholder('e.g. 16:30')
+      .setRequired(true);
+
+    modal.addComponents(new ActionRowBuilder().addComponents(dateInput), new ActionRowBuilder().addComponents(timeInput));
+    return modal;
+  },
   admin: {
     eval() {
       const modal = new ModalBuilder()

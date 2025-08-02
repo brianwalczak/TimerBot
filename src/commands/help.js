@@ -20,6 +20,7 @@ module.exports = {
         { name: "/list presets", value: "View all saved timer presets.", inline: false },
         { name: "/import", value : "Import multiple events from a .json file at once.", inline: false },
         { name: "/export", value: "Export all of your upcoming events as a .json or .ics file.", inline: false },
+        { name: "/convert", value: "Convert a date and time to your local time zone.", inline: false },
         { name: "/timezone", value: "Set your time zone for accurate reminders and alarms.", inline: false },
         { name: "/status", value: "Check the bot’s uptime, memory usage, and server count.", inline: false },
         { name: "/vote", value: "Support Timer Bot by voting on Top.gg and others!", inline: false },
