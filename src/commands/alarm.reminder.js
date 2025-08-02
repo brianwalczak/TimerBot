@@ -26,8 +26,13 @@ function cmdHandler(type) {
                 .addStringOption(option =>
                     option.setName('ping')
                     .setDescription(`Enter a user or role to ping when the ${type} ends. If none is entered, only you will be notified.`)
+                    .setRequired(false))
+                .addChannelOption(option =>
+                    option.setName('channel')
+                    .setDescription('Select a custom channel to send the alert. If none is selected, it will be sent in this channel.')
                     .setRequired(false)),
         async run(client, interaction) {
+            const channel = interaction.options.getChannel('channel');
             const user = await Database.getUser(interaction.user.id);
             if(!user || !user.timezone) return interaction.reply({
                 content: "⚠️ **Whoops!** Looks like you haven't set your timezone yet. Please use the `/timezone` command to set it before using this command.",
@@ -41,6 +46,7 @@ function cmdHandler(type) {
             await Cache.setCache(flow, {
                 ping: interaction.options.getString("ping") ?? null,
                 userId: interaction.user.id,
+                channelId: channel?.id ?? interaction?.channel?.id ?? null,
                 tz: user.timezone // include user timezone in cache
             }, (60000 * 5));
         },
@@ -64,7 +70,7 @@ function cmdHandler(type) {
                     });
                 }
                 
-                const { ping, tz } = await Cache.getCache(flow);
+                const { ping, tz, channelId } = await Cache.getCache(flow);
                 const endTime = createDate(date, time, tz);
 
                 if (!endTime || endTime <= Date.now()) {
@@ -78,6 +84,7 @@ function cmdHandler(type) {
                     endTime,
                     ping,
                     tz,
+                    channelId,
                     ...(type === 'reminder' ? { title, desc } : {}),
                     userId: interaction.user.id,
                     type: type
@@ -116,7 +123,6 @@ function cmdHandler(type) {
                 delete cacheData.tz;
 
                 await Database.insertEvent({
-                    channelId: interaction?.channel?.id ?? null,
                     id: eventId,
                     ...cacheData
                 });

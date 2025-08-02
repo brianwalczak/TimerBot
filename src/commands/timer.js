@@ -11,15 +11,21 @@ module.exports = {
 		.addStringOption(option =>
 			option.setName('ping')
 			.setDescription("Enter a user or role to ping when the timer ends. If none is entered, only you will be notified.")
-			.setRequired(false)),
+			.setRequired(false))
+		.addChannelOption(option =>
+            option.setName('channel')
+            .setDescription('Select a custom channel to send the alert. If none is selected, it will be sent in this channel.')
+            .setRequired(false)),
   async run(client, interaction) {
+	const channel = interaction.options.getChannel('channel');
 	const flow = interaction.id;
 	const modal = Modals.timer(flow);
 	await interaction.showModal(modal);
 
 	await Cache.setCache(flow, {
 		ping: interaction.options.getString("ping") ?? null,
-		userId: interaction.user.id
+		userId: interaction.user.id,
+		channelId: channel?.id ?? interaction?.channel?.id ?? null
 	}, (60000 * 5));
   },
   async register(client) {
@@ -50,12 +56,13 @@ module.exports = {
 			});
 		}
 
-		const { ping } = await Cache.getCache(flow);
+		const { ping, channelId } = await Cache.getCache(flow);
 
 		const cacheData = {
 			timeString: createTimeString({ hours, minutes, seconds }),
 			totalMs,
 			ping,
+			channelId,
 			userId: interaction.user.id,
 			type: 'timer'
 		};
@@ -93,7 +100,6 @@ module.exports = {
 		delete cacheData.expiresAt;
 		delete cacheData.totalMs;
 		await Database.insertEvent({
-			channelId: interaction?.channel?.id ?? null,
 			id: eventId,
 			endTime: endTime,
 			...cacheData

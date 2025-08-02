@@ -30,6 +30,11 @@ module.exports = {
                 .setDescription("The tag of the preset you'd like to run.")
                 .setRequired(true)
             )
+            .addChannelOption(option =>
+                option.setName('channel')
+                .setDescription('Select a custom channel to send the alert. If none is selected, it will be sent in this channel.')
+                .setRequired(false)
+            )
         ),
   run: async (client, interaction) => {
     const command = interaction.options.getSubcommand();
@@ -75,6 +80,7 @@ module.exports = {
 
 
     } else if(command === 'run') {
+        const channel = interaction.options.getChannel('channel');
         let preset = await Database.getPreset(interaction.user.id, tag);
 
         if (!preset) {
@@ -90,7 +96,7 @@ module.exports = {
         delete preset.tag;
         delete preset.totalMs;
         await Database.insertEvent({
-            channelId: interaction?.channel?.id ?? null,
+            channelId: channel?.id ?? interaction?.channel?.id ?? null,
             userId: interaction.user.id,
             id: eventId,
             endTime: endTime,
