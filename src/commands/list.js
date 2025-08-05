@@ -252,7 +252,7 @@ module.exports = {
             }
 
             const buttons = new ActionRowBuilder().addComponents(new ButtonBuilder()
-                .setCustomId(`deleteItem+${type === 'events' ? item.id : item.tag}+${type}`)
+                .setCustomId(`deleteItem+t_${type === 'events' ? item.id : item.tag}+${type}`)
                 .setLabel(`Delete ${type === 'events' ? 'Event' : 'Preset'}`)
                 .setStyle(ButtonStyle.Danger),
             );
@@ -261,7 +261,8 @@ module.exports = {
     });
 
     client.buttons.set('deleteItem', async interaction => {
-        const [base, itemId, type] = interaction.customId.split('+');
+        let [base, itemId, type] = interaction.customId.split('+');
+        itemId = itemId.replace('t_', ''); // prevent checking cache
         let item;
 
         if(type === 'events') {
