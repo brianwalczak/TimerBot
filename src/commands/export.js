@@ -101,7 +101,7 @@ module.exports = {
         const replied = interaction.replied || interaction.deferred;
         eventId = eventId.replace('e_', ''); // prevent checking cache
 
-        const event = await Database.getEvent(null, eventId);
+        const event = await Database.getEvent(eventId);
         if(!event) {
             return interaction.reply({
 				content: "⚠️ **Whoops!** Looks like this event has already ended and no longer exists.",

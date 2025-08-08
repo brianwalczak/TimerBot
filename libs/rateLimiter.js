@@ -18,8 +18,7 @@ const quotas = {
 };
 
 async function getEventsQuota(userId) {
-  const eventsCollection = await getEvents();
-  const userEvents = eventsCollection.find({ userId, endTime: { '$gt': Date.now() } });
+  const userEvents = await getEvents(userId);
 
   return userEvents.length;
 }

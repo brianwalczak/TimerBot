@@ -211,7 +211,7 @@ module.exports = {
         
         if(type === 'events') {
             const eventId = interaction.fields.getTextInputValue("eventId");
-            item = await Database.getEvent(interaction.user.id, eventId);
+            item = await Database.getEvent(eventId);
         } else if(type === 'presets') {
             const tag = interaction.fields.getTextInputValue("tag");
             item = await Database.getPreset(interaction.user.id, tag);
@@ -266,7 +266,7 @@ module.exports = {
         let item;
 
         if(type === 'events') {
-            item = await Database.getEvent(interaction.user.id, itemId);
+            item = await Database.getEvent(itemId);
         } else if(type === 'presets') {
             item = await Database.getPreset(interaction.user.id, itemId);
         }
@@ -279,7 +279,7 @@ module.exports = {
         }
 
         if(type === 'events') {
-            await Database.deleteEvent(item);
+            await Database.deleteEvent(item.id);
         } else if(type === 'presets') {
             const deletion = await Database.deletePreset(interaction.user.id, itemId);
 

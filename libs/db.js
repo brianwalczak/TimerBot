@@ -1,129 +1,109 @@
-const loki = require('lokijs');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 const chalk = require('chalk');
-let resolveEvents;
-let resolveConfig;
-
-const path = require('path');
-const eventsPath = process.env.FILES_LOCATION ? path.join(process.env.FILES_LOCATION, 'events.db') : path.join(__dirname, "../events.db");
-const configPath = process.env.FILES_LOCATION ? path.join(process.env.FILES_LOCATION, 'config.db') : path.join(__dirname, "../config.db");
-
-const eventsReady = new Promise(resolve => (resolveEvents = resolve));
-const events = new loki(eventsPath, {
-    autoload: true,
-    autoloadCallback: () => {
-        if (!events.getCollection('events')) {
-            events.addCollection('events', { indices: ['userId', 'channelId'] });
-        }
-
-        resolveEvents();
-    },
-    autosave: true,
-    autosaveInterval: 5000
-});
-
-const configReady = new Promise(resolve => (resolveConfig = resolve));
-const config = new loki(configPath, {
-    autoload: true,
-    autoloadCallback: () => {
-        if(!config.getCollection('users')) {
-            config.addCollection('users', { indices: ['id'], unique: ['id'] });
-        }
-
-        resolveConfig();
-    },
-    autosave: true,
-    autosaveInterval: 5000
-});
 
 async function getUsers() {
-    await configReady;
-
-    const users = config.getCollection('users');
-    return users;
+    return await prisma.user.findMany();
 }
 
 async function getUser(userId) {
-    await configReady;
-
-    const users = config.getCollection('users');
-    return users.by('id', userId);
+    return await prisma.user.findUnique({ where: { id: userId } });
 }
 
 async function getEvents(userId = null) {
-    await eventsReady;
+    let events = [];
 
-    const collection = events.getCollection('events');
-    if(!userId) return collection;
+    if(!userId) {
+      events = await prisma.event.findMany();
+    } else {
+      events = await prisma.event.findMany({
+        where: {
+          userId,
+          endTime: { gt: BigInt(Date.now()) }
+        }
+      });
+    }
 
-    return collection.find({ userId, endTime: { '$gt': Date.now() } }) || [];
+    return events.map(event => ({
+      ...event,
+      endTime: (event.endTime !== null && event.endTime !== undefined) ? Number(event.endTime) : event.endTime,
+    }));
 }
 
-async function getEvent(userId = null, eventId) {
-    await eventsReady;
+async function expiredEvents() {
+    let events = await prisma.event.findMany({
+      where: {
+        endTime: { lte: BigInt(Date.now()) }
+      }
+    });
 
-    const collection = events.getCollection('events');
-    const query = userId ? { userId, id: eventId } : { id: eventId };
-
-    return collection.findOne(query);
+    return events.map(event => ({
+      ...event,
+      endTime: (event.endTime !== null && event.endTime !== undefined) ? Number(event.endTime) : event.endTime,
+    }));
 }
 
-async function deleteEvent(event) {
-    await eventsReady;
+async function getEvent(eventId) {
+    let event = await prisma.event.findUnique({ where: { id: eventId } });
 
-    const collection = events.getCollection('events');
-    collection.remove(event);
+    if(event && event.endTime) {
+      event.endTime = Number(event.endTime);
+    }
+
+    return event;
+}
+
+async function deleteEvent(eventId) {
+    await prisma.event.delete({ where: { id: eventId } });
     return true;
 }
 
 async function insertEvent(data) {
-    await eventsReady;
-
-    const collection = events.getCollection('events');
-    collection.insert(data);
+    if(data.endTime) data.endTime = BigInt(data.endTime);
+    await prisma.event.create({ data: data });
+    
     return true;
 }
 
 async function getPresets(userId) {
-    await configReady;
     const user = await getUser(userId);
-
     return user?.presets || [];
 }
 
 async function getPreset(userId, tag) {
-    await configReady;
     const presets = await getPresets(userId);
-
     return presets.find(p => p.tag === tag);
 }
 
 async function deletePreset(userId, tag) {
-    await configReady;
-
     const user = await getUser(userId);
     if (!user?.presets || !Array.isArray(user?.presets)) return null;
 
     const index = user.presets.findIndex(p => p.tag === tag);
-    if (index !== -1) {
-        user.presets.splice(index, 1);
+    if (index === -1) return false;
 
-        return true;
-    }
+    user.presets.splice(index, 1);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { presets: user.presets }
+    });
 
-    return false;
+    return true;
 }
 
 async function insertPreset(userId, data) {
-    await configReady;
-
-    const users = config.getCollection('users');
-    let user = users.by('id', userId);
+    const user = await getUser(userId);
 
     if (!user) {
-        users.insert({ id: userId, presets: [data] });
+        await prisma.user.create({ data: { id: userId, presets: [data] } });
     } else {
         const presets = user.presets || [];
-        users.update({ ...user, presets: [...presets, data] });
+        presets.push(data);
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { presets }
+        });
     }
 
     return true;
@@ -131,30 +111,35 @@ async function insertPreset(userId, data) {
 
 
 async function setUserTimezone(userId, timezone) {
-  await configReady;
-
-  const users = config.getCollection('users');
-  const user = users.by('id', userId);
+  const user = await getUser(userId);
 
   if (!user) {
-    users.insert({ id: userId, presets: [], timezone });
+    await prisma.user.create({
+      data: { id: userId, presets: [], timezone }
+    });
   } else {
-    users.update({ ...user, timezone });
+    await prisma.user.update({
+      where: { id: userId },
+      data: { timezone }
+    });
   }
 
   return true;
 }
 
 async function setPremiumUser(userId, order, preventOverwrite = false) {
-  await configReady;
-
-  const users = config.getCollection('users');
-  let user = users.by('id', userId);
+  const user = await getUser(userId);
 
   if (!user) {
     // Only insert the new user if they provided a valid order
     if(order !== null && order !== undefined) {
-      users.insert({ id: userId, presets: [], premium: order });
+      await prisma.user.create({
+        data: {
+          id: userId,
+          presets: [],
+          premium: order
+        }
+      });
     }
   } else if(preventOverwrite && (user.premium !== null && user.premium !== undefined)) {
     // If preventOverwrite is true and the user already has a premium status, do not overwrite it
@@ -162,20 +147,23 @@ async function setPremiumUser(userId, order, preventOverwrite = false) {
   } else {
     if(order === null || order === undefined) {
       // If they didn't specify a valid order, remove the premium status
-      delete user.premium;
+      await prisma.user.update({
+        where: { id: userId },
+        data: { premium: null }
+      });
     } else {
       // Otherwise set the premium status to the provided order
-      user.premium = order;
+      await prisma.user.update({
+        where: { id: userId },
+        data: { premium: order }
+      });
     }
-
-    users.update(user);
   }
 
   return true;
 }
 
 async function isUserPremium(userId) {
-  await configReady;
   const user = await getUser(userId);
   if(!user || !user.premium) return false;
 
@@ -186,16 +174,12 @@ console.log(`${chalk.blue('[DATABASE]')} Database connections established succes
 process.on('SIGINT', async () => {
   try {
     // quick little fix to make sure it saves before exiting
-    await Promise.all([
-      new Promise(resolve => events.saveDatabase(resolve)),
-      new Promise(resolve => config.saveDatabase(resolve))
-    ]);
-
+    await prisma.$disconnect();
     process.exit(0);
   } catch (err) {
-    console.error('Error saving databases:', err);
+    console.error('Error disconnecting Prisma:', err);
     process.exit(1);
   }
 });
 
-module.exports = { getUsers, getUser, getEvents, getEvent, deleteEvent, insertEvent, getPresets, getPreset, deletePreset, insertPreset, setUserTimezone, setPremiumUser, isUserPremium };
+module.exports = { getUsers, getUser, getEvents, expiredEvents, getEvent, deleteEvent, insertEvent, getPresets, getPreset, deletePreset, insertPreset, setUserTimezone, setPremiumUser, isUserPremium };

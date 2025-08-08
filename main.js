@@ -6,7 +6,7 @@ const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
 
-const configPath = process.env.FILES_LOCATION ? path.join(process.env.FILES_LOCATION, 'config.json') : path.join(__dirname, "./config.json");
+const configPath = process.env.CONFIG_FILE ? process.env.CONFIG_FILE : path.join(__dirname, "./config.json");
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 
 const client = new Client({

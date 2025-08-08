@@ -1,11 +1,17 @@
 {
   "name": "timerbot",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "A powerful time-based bot allowing you to create detailed timers, alarms, and reminders in your Discord server effortlessly.",
   "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/BrianWalczak/TimerBot.git"
+  },
+  "scripts": {
+    "start": "npm run db/migrate:prod && npm run db/generate && node index.js",
+    "db/generate": "npx prisma generate",
+    "db/migrate:dev": "npx prisma migrate dev",
+    "db/migrate:prod": "npx prisma migrate deploy"
   },
   "keywords": [
     "discord",
@@ -24,13 +30,14 @@
   "homepage": "https://github.com/BrianWalczak/TimerBot#readme",
   "dependencies": {
     "@discordjs/rest": "^2.5.0",
+    "@prisma/client": "^6.13.0",
     "chalk": "^4.1.2",
     "discord-api-types": "^0.38.11",
     "discord.js": "^14.19.3",
     "express": "^5.1.0",
     "ics": "^3.8.1",
-    "lokijs": "^1.5.12",
     "luxon": "^3.6.1",
+    "prisma": "^6.13.0",
     "ulid": "^3.0.1"
   }
 }

@@ -1,16 +1,15 @@
 const { EmbedBuilder } = require('discord.js');
-const { getEvents } = require('./db.js');
+const { expiredEvents, deleteEvent } = require('./db.js');
 const chalk = require('chalk');
 
 async function startDatabase(manager) {
     setInterval(async () => {
         const now = Date.now();
         
-        const events = await getEvents();
-        const expiredEvents = events.find({ endTime: { '$lte': now } });
-        if(expiredEvents.length === 0) return;
+        const expired = await expiredEvents();
+        if(expired.length === 0) return;
                 
-        for (const event of expiredEvents) {
+        for (const event of expired) {
             const ping = event.ping ?? `<@${event.userId}>`;
             const embed = new EmbedBuilder()
                 .addFields({ name: "📣 Ping", value: ping, inline: true })
@@ -53,8 +52,8 @@ async function startDatabase(manager) {
                     });
                 }
             }
-                
-            events.remove(event);
+
+            await deleteEvent(event.id);
         }
     }, 1000);
 
