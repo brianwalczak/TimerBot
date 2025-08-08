@@ -81,8 +81,8 @@ module.exports = {
         }
       }
 
-      const users = (await Database.getUsers()).data;
-      const events = (await Database.getEvents()).data;
+      const users = await Database.getUsers();
+      const events = await Database.getEvents();
 
       let premiumUsers = 0;
       let overrideUsers = 0;

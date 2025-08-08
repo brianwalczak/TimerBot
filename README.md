@@ -81,7 +81,7 @@ npm run start # already migrates + generates Prisma
 ```
 
 > [!CAUTION]
-> **Starting with Timer Bot version 3.1.0, the database backend has switched from LokiJS to Prisma + SQLite. This means your old data stored with LokiJS will NOT be automatically migrated. Please back up your existing data and perform manual migration before upgrading (a migration helper script is coming soon).**
+> Starting with Timer Bot version 3.1.0, the database backend has switched from LokiJS to Prisma + SQLite. This means your old data stored with LokiJS will **NOT** be automatically migrated. Please back up your existing data and run the interactive migration helper script to transfer your data (`npm run db/loki-migrate`).
 
 ### Notes
 Timer Bot uses both the built-in `Date` object in Node.js and the `luxon` library for handling time calculation. To maintain consistency and avoid issues with timezone (such as conversion to the local server time), it relies on Unix epoch timestamps, which represent time in UTC. This ensures all times are standardized to UTC regardless of the server's local timezone. For alarms and reminders, which require a date and time input, Timer Bot uses `luxon` to correctly handle the event data with the user's local timezone.

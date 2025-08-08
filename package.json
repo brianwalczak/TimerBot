@@ -11,7 +11,8 @@
     "start": "npm run db/migrate:prod && npm run db/generate && node index.js",
     "db/generate": "npx prisma generate",
     "db/migrate:dev": "npx prisma migrate dev",
-    "db/migrate:prod": "npx prisma migrate deploy"
+    "db/migrate:prod": "npx prisma migrate deploy",
+    "db/loki-migrate": "node tools/loki-migrate.js"
   },
   "keywords": [
     "discord",
@@ -39,5 +40,9 @@
     "luxon": "^3.6.1",
     "prisma": "^6.13.0",
     "ulid": "^3.0.1"
+  },
+  "devDependencies": {
+    "enquirer": "^2.4.1",
+    "lokijs": "^1.5.12"
   }
 }
