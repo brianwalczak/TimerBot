@@ -29,8 +29,7 @@ async function migrateUsers(path) {
             const formattedUsers = users.data.map(({ $loki, meta, ...data }) => data);
 
             await prisma.user.createMany({
-                data: formattedUsers,
-                skipDuplicates: true
+                data: formattedUsers
             });
         } catch(error) {
             console.error('Error migrating users:', error);
@@ -56,8 +55,7 @@ async function migrateEvents(path) {
             });
 
             await prisma.event.createMany({
-                data: formattedEvents,
-                skipDuplicates: true
+                data: formattedEvents
             });
         } catch (error) {
             console.error('Error migrating event:', error);
