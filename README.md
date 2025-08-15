@@ -25,7 +25,7 @@ Once added, you can type `/` followed by one of the commands below:
 - `/list events`: View all active timers, alarms, and reminders.
 - `/list presets`: View all saved timer presets.
 - `/timezone`: Set your time zone for accurate reminders and alarms.
-- `/status`: Check the bot’s uptime, memory usage, and server count.
+- `/status`: Check the bot's uptime, memory usage, and server count.
 - `/vote`: Support Timer Bot by voting on Top.gg and others!
 - `/support`: Join the Timer Bot support server for help.
 

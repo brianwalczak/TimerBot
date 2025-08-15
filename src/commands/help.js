@@ -22,7 +22,7 @@ module.exports = {
         { name: "/export", value: "Export all of your upcoming events as a .json or .ics file.", inline: false },
         { name: "/convert", value: "Convert a date and time to your local time zone.", inline: false },
         { name: "/timezone", value: "Set your time zone for accurate reminders and alarms.", inline: false },
-        { name: "/status", value: "Check the bot’s uptime, memory usage, and server count.", inline: false },
+        { name: "/status", value: "Check the bot's uptime, memory usage, and server count.", inline: false },
         { name: "/vote", value: "Support Timer Bot by voting on Top.gg and others!", inline: false },
         { name: "/support", value: "Join the Timer Bot support server for help.", inline: false }
       )
