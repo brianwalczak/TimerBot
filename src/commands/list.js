@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ApplicationIntegrationType, InteractionContextType } = require("discord.js");
 const { Cache, Database } = require('../ipc.js');
 const { Modals } = require('../elements.js');
 const itemTotal = 5;
@@ -181,7 +181,16 @@ module.exports = {
         .addSubcommand(subcommand => subcommand
             .setName('presets')
             .setDescription('View all of your created presets.')
-        ),
+        )
+        .setIntegrationTypes([
+			ApplicationIntegrationType.GuildInstall,
+        	ApplicationIntegrationType.UserInstall
+		])
+		.setContexts([
+			InteractionContextType.BotDM,
+			InteractionContextType.Guild,
+			InteractionContextType.PrivateChannel
+		]),
   run: async (client, interaction) => {
         const type = interaction.options.getSubcommand();
 

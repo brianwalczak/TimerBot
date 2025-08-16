@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ApplicationIntegrationType, InteractionContextType } = require("discord.js");
 const { Modals, Buttons, Embeds } = require("../elements.js");
 const { PayPal, Database } = require("../ipc.js");
 let isEnabled = null;
@@ -51,7 +51,16 @@ module.exports = {
             .setDescription("Enter the PayPal order ID for your tip (found in the confirmation message).")
             .setRequired(true)
         )
-    ),
+    )
+    .setIntegrationTypes([
+      ApplicationIntegrationType.GuildInstall,
+      ApplicationIntegrationType.UserInstall
+    ])
+    .setContexts([
+      InteractionContextType.BotDM,
+      InteractionContextType.Guild,
+      InteractionContextType.PrivateChannel
+    ]),
   run: async (client, interaction) => {
     if(isEnabled === null) isEnabled = await PayPal.isEnabled(); // initial run
     const subcommand = interaction.options.getSubcommand();

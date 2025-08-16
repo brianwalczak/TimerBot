@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, MessageFlags } = require("discord.js");
+const { SlashCommandBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType } = require("discord.js");
 const { getMsDuration, createTimeString } = require('../utils.js');
 const { Cache, Database } = require('../ipc.js');
 const { Modals, Embeds } = require('../elements.js');
@@ -35,7 +35,16 @@ module.exports = {
                 .setDescription('Select a custom channel to send the alert. If none is selected, it will be sent in this channel.')
                 .setRequired(false)
             )
-        ),
+        )
+        .setIntegrationTypes([
+			ApplicationIntegrationType.GuildInstall,
+        	ApplicationIntegrationType.UserInstall
+		])
+		.setContexts([
+			InteractionContextType.BotDM,
+			InteractionContextType.Guild,
+			InteractionContextType.PrivateChannel
+		]),
   run: async (client, interaction) => {
     const command = interaction.options.getSubcommand();
     let tag = interaction.options.getString('tag');

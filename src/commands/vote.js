@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType } = require("discord.js");
 
 const websites = [
   {
@@ -14,8 +14,16 @@ const websites = [
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("vote")
-    .setDescription("Support Timer Bot by voting on these platforms!"),
-
+    .setDescription("Support Timer Bot by voting on these platforms!")
+    .setIntegrationTypes([
+      ApplicationIntegrationType.GuildInstall,
+      ApplicationIntegrationType.UserInstall
+    ])
+    .setContexts([
+      InteractionContextType.BotDM,
+      InteractionContextType.Guild,
+      InteractionContextType.PrivateChannel
+    ]),
   run: async (client, interaction) => {
     const fields = websites.map(site => ({
       name: `🌐 ${site.name}`,

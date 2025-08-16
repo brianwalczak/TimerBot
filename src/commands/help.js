@@ -1,9 +1,18 @@
-const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("help")
-    .setDescription("View a list of all commands and what they do."),
+    .setDescription("View a list of all commands and what they do.")
+    .setIntegrationTypes([
+      ApplicationIntegrationType.GuildInstall,
+      ApplicationIntegrationType.UserInstall
+    ])
+    .setContexts([
+      InteractionContextType.BotDM,
+      InteractionContextType.Guild,
+      InteractionContextType.PrivateChannel
+    ]),
 
   run: async (client, interaction) => {
     const embed = new EmbedBuilder()

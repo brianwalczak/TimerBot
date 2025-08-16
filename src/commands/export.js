@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, MessageFlags } = require("discord.js");
+const { SlashCommandBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType } = require("discord.js");
 const { Database } = require('../ipc.js');
 const ics = require('ics');
 
@@ -51,7 +51,16 @@ module.exports = {
                 { name: 'JSON', value: 'json' },
                 { name: 'ICS', value: 'ics' }
             )
-    ),
+    )
+    .setIntegrationTypes([
+		ApplicationIntegrationType.GuildInstall,
+        ApplicationIntegrationType.UserInstall
+	])
+	.setContexts([
+		InteractionContextType.BotDM,
+		InteractionContextType.Guild,
+		InteractionContextType.PrivateChannel
+	]),
   run: async (client, interaction) => {
     const format = interaction.options.getString('format');
     const userEvents = await Database.getEvents(interaction.user.id);
@@ -66,7 +75,7 @@ module.exports = {
     let data;
     if(format === 'json') {
         data = JSON.stringify(userEvents.map(event => ({
-            channelId: event.channelId,
+            channelId: event?.channelId ?? null,
             userId: event.userId,
             ...(event.title && { title: event.title }),
             ...(event.desc && { desc: event.desc }),

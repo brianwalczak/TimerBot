@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, MessageFlags } = require("discord.js");
+const { SlashCommandBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType } = require("discord.js");
 const { Modals, Embeds, Buttons } = require('../elements.js');
 const { Database } = require('../ipc.js');
 
@@ -24,7 +24,16 @@ module.exports = {
     .addSubcommand(sub =>
       sub.setName("eval")
         .setDescription("Execute a JavaScript expression within Discord.")
-    ),
+    )
+    .setIntegrationTypes([
+			ApplicationIntegrationType.GuildInstall,
+      ApplicationIntegrationType.UserInstall
+		])
+		.setContexts([
+			InteractionContextType.BotDM,
+			InteractionContextType.Guild,
+			InteractionContextType.PrivateChannel
+		]),
   run: async (client, interaction) => {
     if (!admins.includes(interaction.user.id)) {
       return interaction.reply({

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ActionRowBuilder, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ActionRowBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType } = require('discord.js');
 const { Database } = require('../ipc.js');
 const timezone = require('../timezone.json');
 const { IANAZone } = require("luxon");
@@ -24,8 +24,16 @@ async function setZone(interaction) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('timezone')
-    .setDescription('Set your time zone for alarms and reminders (required for accurate pings).'),
-
+    .setDescription('Set your time zone for alarms and reminders (required for accurate pings).')
+    .setIntegrationTypes([
+      ApplicationIntegrationType.GuildInstall,
+      ApplicationIntegrationType.UserInstall
+    ])
+    .setContexts([
+      InteractionContextType.BotDM,
+      InteractionContextType.Guild,
+      InteractionContextType.PrivateChannel
+    ]),
   async run(client, interaction) {
     let currentZone = 'None';
     const user = await Database.getUser(interaction.user.id);

@@ -1,10 +1,18 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, ApplicationIntegrationType, InteractionContextType } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("status")
-    .setDescription("View the current status and stats of the bot, including server count, memory usage, and uptime."),
-
+    .setDescription("View the current status and stats of the bot, including server count, memory usage, and uptime.")
+    .setIntegrationTypes([
+      ApplicationIntegrationType.GuildInstall,
+      ApplicationIntegrationType.UserInstall
+    ])
+    .setContexts([
+      InteractionContextType.BotDM,
+      InteractionContextType.Guild,
+      InteractionContextType.PrivateChannel
+    ]),
   run: async (client, interaction) => {
     const shardId = client.shard?.ids?.[0];
     const uptime = Math.floor(process.uptime());

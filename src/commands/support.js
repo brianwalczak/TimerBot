@@ -1,9 +1,18 @@
-const { SlashCommandBuilder, EmbedBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ApplicationIntegrationType, InteractionContextType } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("support")
-    .setDescription("Need help? Join the Timer Bot support server for assistance!"),
+    .setDescription("Need help? Join the Timer Bot support server for assistance!")
+    .setIntegrationTypes([
+			ApplicationIntegrationType.GuildInstall,
+        	ApplicationIntegrationType.UserInstall
+		])
+		.setContexts([
+			InteractionContextType.BotDM,
+			InteractionContextType.Guild,
+			InteractionContextType.PrivateChannel
+		]),
 
   run: async (client, interaction) => {
     const embed = new EmbedBuilder()

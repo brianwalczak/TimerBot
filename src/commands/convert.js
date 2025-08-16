@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ActionRowBuilder, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ActionRowBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType } = require('discord.js');
 const { Modals } = require('../elements.js');
 const { Database, Cache } = require('../ipc.js');
 const timezone = require('../timezone.json');
@@ -7,8 +7,16 @@ const { IANAZone, DateTime } = require("luxon");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('convert')
-    .setDescription('Convert a specified time to your local time zone.'),
-
+    .setDescription('Convert a specified time to your local time zone.')
+		.setIntegrationTypes([
+			ApplicationIntegrationType.GuildInstall,
+        	ApplicationIntegrationType.UserInstall
+		])
+		.setContexts([
+			InteractionContextType.BotDM,
+			InteractionContextType.Guild,
+			InteractionContextType.PrivateChannel
+		]),
   async run(client, interaction) {
     const user = await Database.getUser(interaction.user.id);
     if(!user || !user.timezone) return interaction.reply({

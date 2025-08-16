@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType } = require('discord.js');
 const { Cache, Database } = require('../ipc.js');
 const { DateTime } = require("luxon");
 const { Modals, Embeds } = require('../elements.js');
@@ -30,7 +30,16 @@ function cmdHandler(type) {
                 .addChannelOption(option =>
                     option.setName('channel')
                     .setDescription('Select a custom channel to send the alert. If none is selected, it will be sent in this channel.')
-                    .setRequired(false)),
+                    .setRequired(false))
+                .setIntegrationTypes([
+                    ApplicationIntegrationType.GuildInstall,
+                    ApplicationIntegrationType.UserInstall
+                ])
+                .setContexts([
+                    InteractionContextType.BotDM,
+                    InteractionContextType.Guild,
+                    InteractionContextType.PrivateChannel
+                ]),
         async run(client, interaction) {
             const channel = interaction.options.getChannel('channel');
             const user = await Database.getUser(interaction.user.id);

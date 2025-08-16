@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, MessageFlags } = require("discord.js");
+const { SlashCommandBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType } = require("discord.js");
 const { RateLimiter, Database } = require('../ipc.js');
 const { ulid } = require('ulid');
 
@@ -10,7 +10,16 @@ module.exports = {
       option.setName('file')
             .setDescription('Upload your exported JSON file')
             .setRequired(true)
-    ),
+    )
+    .setIntegrationTypes([
+			ApplicationIntegrationType.GuildInstall,
+        	ApplicationIntegrationType.UserInstall
+		])
+		.setContexts([
+			InteractionContextType.BotDM,
+			InteractionContextType.Guild,
+			InteractionContextType.PrivateChannel
+		]),
   run: async (client, interaction) => {
     const attachment = interaction.options.getAttachment('file');
     
@@ -48,12 +57,12 @@ module.exports = {
 
     let success = 0;
     for (const event of events) {
-      if(!event.channelId || !event.endTime || !event.type) continue;
+      if((!event.channelId && !event.userId) || !event.endTime || !event.type) continue;
       if(event.type === 'timer' && !event.timeString) continue;
       if(event.type === 'reminder' && !event.title) continue;
 
-      // check if channel ID is valid (generally id's are around 19 digits, but we're adding a range for safety, also to prevent huge numbers)
-      if (!/^\d{15,25}$/.test(event.channelId)) continue;
+      // check if channel ID or user ID is valid (generally id's are around 19 digits, but we're adding a range for safety, also to prevent huge numbers)
+      if ((event.channelId && !/^\d{15,25}$/.test(event.channelId)) || (event.userId && !/^\d{15,25}$/.test(event.userId))) continue;
       // check if end time is a valid epoch and is in the future
       if (isNaN(event.endTime) || event.endTime <= Date.now()) continue;
       // check if type is valid (timer, alarm, reminder)
@@ -64,7 +73,7 @@ module.exports = {
       if (event.type === 'reminder' && event.desc && (typeof event.desc !== 'string' || event.desc.length > 750)) continue;
 
       await Database.insertEvent({
-        channelId: event.channelId,
+        channelId: event?.channelId ?? null,
         id: ulid(),
         endTime: event.endTime,
         ...(event.type === 'timer' ? { timeString: event.timeString } : {}),

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags, ApplicationIntegrationType, InteractionContextType } = require('discord.js');
 const { Modals, Embeds } = require('../elements.js');
 const { getMsDuration, createTimeString } = require('../utils.js');
 const { Cache, Database } = require('../ipc.js');
@@ -15,7 +15,16 @@ module.exports = {
 		.addChannelOption(option =>
             option.setName('channel')
             .setDescription('Select a custom channel to send the alert. If none is selected, it will be sent in this channel.')
-            .setRequired(false)),
+            .setRequired(false))
+		.setIntegrationTypes([
+			ApplicationIntegrationType.GuildInstall,
+        	ApplicationIntegrationType.UserInstall
+		])
+		.setContexts([
+			InteractionContextType.BotDM,
+			InteractionContextType.Guild,
+			InteractionContextType.PrivateChannel
+		]),
   async run(client, interaction) {
 	const channel = interaction.options.getChannel('channel');
 	const flow = interaction.id;

@@ -16,7 +16,7 @@ model User {
 
 model Event {
   id          String @id
-  channelId   String
+  channelId   String?
   userId      String
   type        String
   ping        String?
