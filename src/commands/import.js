@@ -53,7 +53,7 @@ module.exports = {
       }
     }
 
-    await interaction.deferUpdate();
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     let success = 0;
     for (const event of events) {
@@ -88,14 +88,12 @@ module.exports = {
     }
 
     if (success === 0) {
-      return interaction.reply({
-        content: "⚠️ **Whoops!** It looks like there were no valid events in your file to import.",
-        flags: MessageFlags.Ephemeral
+      return interaction.editReply({
+        content: "⚠️ **Whoops!** It looks like there were no valid events in your file to import."
       });
     } else {
-      return interaction.reply({
-        content: `✅ Successfully imported ${success === events.length ? "all" : success} event${success === 1 ? "" : "s"} from your JSON file!`,
-        flags: MessageFlags.Ephemeral
+      return interaction.editReply({
+        content: `✅ Successfully imported ${success === events.length ? "all" : success} event${success === 1 ? "" : "s"} from your JSON file!`
       });
     }
   }
