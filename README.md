@@ -1,8 +1,5 @@
-<h1 align="center">Timer Bot (v3) - Discord events made simple</h1>
-<p align="center">A powerful time-based bot allowing you to create detailed timers, alarms, and reminders in your Discord server effortlessly.</p>
-
-> [!WARNING]
-> **This project is currently in its beta state as I monitor for bugs and gather user feedback. If you encounter any issues, please report them <a href='https://github.com/BrianWalczak/TimerBot/issues'>here</a> :)**
+<h1 align="center">Timer Bot - Discord events made simple</h1>
+<p align="center">A powerful time-based bot allowing you to create detailed timers, alarms, and reminders in your Discord server effortlessly.<br><br> <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg"></a> <img src="https://hackatime-badge.hackclub.com/U091MEESEDT/TimerBot/?label=Time%20Spent" /></p></p>
 
 ## Features
 - (⏱️) Create precise timer countdowns with hours, minutes, and seconds.
