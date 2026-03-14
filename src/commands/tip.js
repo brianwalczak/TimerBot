@@ -78,7 +78,7 @@ module.exports = {
             .setColor(0xFFD700)
             .setDescription([
                 "Hey there, I'm **Brian**.",
-                "I'm a student and full-stack developer with 5+ years of experience, specializing in back-end work using Node.js. I love building useful things for people and tinkering with electronics.\n",
+                "I'm a student and full-stack developer with 6+ years of experience, specializing in back-end work using Node.js. I love building useful things for people and tinkering with electronics.\n",
                 "If you've found Timer Bot helpful or just want to support a solo developer, I'd appreciate if you could leave a tip! As a thank you, you'll unlock some premium perks like:",
                 "- **No Cooldown**: Use all commands without waiting for cooldowns.",
                 "- **Upgraded Limits**: Enjoy higher usage limits for commands, with up to 200 active events at any time.",
