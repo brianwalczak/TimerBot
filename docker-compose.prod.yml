@@ -5,7 +5,7 @@ services:
     ports:
       - "7000:7000"
     volumes:
-      - /data/volumes/timerbot:/usr/src/app/data
+      - /data/storage/timerbot:/usr/src/app/data
     environment:
       CONFIG_FILE: /usr/src/app/data/config.json
       DATABASE_URL: file:/usr/src/app/data/data.db
