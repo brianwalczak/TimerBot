@@ -38,7 +38,7 @@ module.exports = {
 	}, (60000 * 5));
   },
   async register(client) {
-	client.modals.set('timerModal', async (interaction) => {
+	client.modals.set('timerModal', async (interaction, { ping, channelId }) => {
 		const [base, flow] = interaction.customId.split('+');
 
 		const hours = parseInt(interaction.fields.getTextInputValue("hours")) || 0;
@@ -57,8 +57,6 @@ module.exports = {
 				flags: MessageFlags.Ephemeral
 			});
 		}
-
-		const { ping, channelId } = await Cache.getCache(flow);
 
 		const cacheData = {
 			timeString: createTimeString({ hours, minutes, seconds }),
@@ -80,11 +78,10 @@ module.exports = {
 		});
 	});
 
-	client.buttons.set('timerConfirm', async (interaction) => {
+	client.buttons.set('timerConfirm', async (interaction, cacheData) => {
 		const [base, flow] = interaction.customId.split('+');
 		const replied = interaction.replied || interaction.deferred;
 
-		const cacheData = await Cache.getCache(flow);
 		const eventId = ulid();
 		const { embed, components } = Embeds.event({ type: 'timer', user: interaction.user, data: cacheData, eventId });
 		const endTime = (Date.now() + cacheData.totalMs);

@@ -60,7 +60,7 @@ function cmdHandler(type) {
             }, (60000 * 5));
         },
         async register(client) {
-            client.modals.set(`${type}Modal`, async (interaction) => {
+            client.modals.set(`${type}Modal`, async (interaction, { ping, tz, channelId }) => {
                 const [base, flow] = interaction.customId.split('+');
 
                 const date = interaction.fields.getTextInputValue("date");
@@ -72,9 +72,7 @@ function cmdHandler(type) {
                     desc = interaction.fields.getTextInputValue("description");
                 };
                 
-                const { ping, tz, channelId } = await Cache.getCache(flow);
                 const endTime = createDate(date, time, tz);
-
                 if (!endTime || endTime <= Date.now()) {
                     return interaction.reply({
                         content: `❌ Your ${type} must be set for a valid date and time.`,
@@ -96,18 +94,16 @@ function cmdHandler(type) {
                 embed.setTitle(type === 'reminder' ? "📝 Confirm Reminder" : "⏰ Confirm Alarm");
 
                 await Cache.setCache(flow, cacheData, (60000 * 5));
-
                 await interaction.reply({
                     embeds: [embed],
                     components
                 });
             });
 
-            client.buttons.set(`${type}Confirm`, async (interaction) => {
+            client.buttons.set(`${type}Confirm`, async (interaction, cacheData) => {
                 const [base, flow] = interaction.customId.split('+');
                 const replied = interaction.replied || interaction.deferred;
                 
-                const cacheData = await Cache.getCache(flow);
                 const eventId = ulid();
                 const { embed, components } = Embeds.event({ type, user: interaction.user, data: cacheData, eventId });
                 await Cache.clearCache(flow);

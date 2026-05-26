@@ -124,7 +124,7 @@ module.exports = {
     }
   },
   async register(client) {
-    client.modals.set('createPreset', async (interaction) => {
+    client.modals.set('createPreset', async (interaction, { tag, ping }) => {
         const [base, flow] = interaction.customId.split('+');
 
         const hours = parseInt(interaction.fields.getTextInputValue("hours")) || 0;
@@ -144,26 +144,18 @@ module.exports = {
 			});
 		}
 
-		if (!(await Cache.isCache(flow))) {
-			return interaction.reply({
-                content: "⚠️ **Whoops!** Looks like your preset wasn't able to be created. Please try again.",
-                flags: MessageFlags.Ephemeral
-            });
-		}
-
-        const cache = await Cache.getCache(flow);
         const presetData = {
-            tag: cache.tag,
+            tag,
             timeString: createTimeString({ hours, minutes, seconds }),
             totalMs,
-            ping: cache.ping
+            ping
         }
 
         await Cache.clearCache(flow);
         await Database.insertPreset(interaction.user.id, presetData);
 
         await interaction.reply({
-            content: `✅ **Your preset has been created successfully with the tag \`${cache.tag}\`!**`,
+            content: `✅ **Your preset has been created successfully with the tag \`${tag}\`!**`,
             components: [],
             embeds: [],
             flags: MessageFlags.Ephemeral

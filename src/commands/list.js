@@ -159,12 +159,11 @@ module.exports = {
         return handlePageEvents({ interaction, type });
   },
   async register(client) {
-    client.buttons.set('listItems', async (interaction) => {
+    client.buttons.set('listItems', async (interaction, { type, page }) => {
         const [base, flow, direction] = interaction.customId.split('+');
         const pageOffset = direction === 'forward' ? 1 : -1;
-        const cache = await Cache.getCache(flow);
         
-        return handlePageEvents({ interaction, flow, type: cache?.type, page: cache?.page, pageOffset });
+        return handlePageEvents({ interaction, flow, type, page, pageOffset });
     });
     
     client.buttons.set('viewItem', async (interaction) => {

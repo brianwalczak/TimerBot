@@ -61,7 +61,7 @@ module.exports = {
       });
     }
 
-    client.modals.set('convert', async (interaction) => {
+    client.modals.set('convert', async (interaction, { tz }) => {
         const date = interaction.fields.getTextInputValue("date");
         const time = interaction.fields.getTextInputValue("time");
         const [base, flow] = interaction.customId.split('+');
@@ -73,7 +73,6 @@ module.exports = {
             flags: MessageFlags.Ephemeral
         });
 
-        const { tz } = await Cache.getCache(flow);
         const [month, day, year] = date.split('-').map(Number);
         const [hour, minute] = time.split(':').map(Number);
         
