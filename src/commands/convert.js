@@ -67,13 +67,6 @@ module.exports = {
         const [base, flow] = interaction.customId.split('+');
         const replied = interaction.replied || interaction.deferred;
 
-        if (!(await Cache.isCache(flow))) {
-            return interaction[replied ? 'editReply' : 'reply']({
-                content: `⚠️ **Whoops!** Looks like this timezone conversion request expired. Please try again.`,
-                flags: MessageFlags.Ephemeral
-            });
-        }
-
         const user = await Database.getUser(interaction.user.id);
         if(!user || !user.timezone) return interaction[replied ? 'editReply' : 'reply']({
             content: "⚠️ **Whoops!** Looks like you haven't set your timezone yet. Please use the `/timezone` command to set it before using this command.",

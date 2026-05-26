@@ -58,13 +58,6 @@ module.exports = {
 			});
 		}
 
-		if (!(await Cache.isCache(flow))) {
-			return interaction.reply({
-				content: "⚠️ **Whoops!** Looks like this timer request expired. Please try again.",
-				flags: MessageFlags.Ephemeral
-			});
-		}
-
 		const { ping, channelId } = await Cache.getCache(flow);
 
 		const cacheData = {
@@ -90,15 +83,6 @@ module.exports = {
 	client.buttons.set('timerConfirm', async interaction => {
 		const [base, flow] = interaction.customId.split('+');
 		const replied = interaction.replied || interaction.deferred;
-
-		if (!(await Cache.isCache(flow))) {
-			return interaction[replied ? 'editReply' : 'reply']({
-				content: "⚠️ **Whoops!** Looks like this timer request expired. Please try again.",
-				embeds: [],
-				components: [],
-				flags: MessageFlags.Ephemeral
-			});
-		}
 
 		const cacheData = await Cache.getCache(flow);
 		const eventId = ulid();

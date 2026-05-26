@@ -71,13 +71,6 @@ function cmdHandler(type) {
                     title = interaction.fields.getTextInputValue("title");
                     desc = interaction.fields.getTextInputValue("description");
                 };
-
-                if (!(await Cache.isCache(flow))) {
-                    return interaction.reply({
-                        content: `⚠️ **Whoops!** Looks like this ${type} request expired. Please try again.`,
-                        flags: MessageFlags.Ephemeral
-                    });
-                }
                 
                 const { ping, tz, channelId } = await Cache.getCache(flow);
                 const endTime = createDate(date, time, tz);
@@ -113,15 +106,6 @@ function cmdHandler(type) {
             client.buttons.set(`${type}Confirm`, async interaction => {
                 const [base, flow] = interaction.customId.split('+');
                 const replied = interaction.replied || interaction.deferred;
-                
-                if (!(await Cache.isCache(flow))) {
-                    return interaction[replied ? 'editReply' : 'reply']({
-                        content: `⚠️ **Whoops!** Looks like this ${type} request expired. Please try again.`,
-                        embeds: [],
-                        components: [],
-                        flags: MessageFlags.Ephemeral
-                    });
-                }
                 
                 const cacheData = await Cache.getCache(flow);
                 const eventId = ulid();

@@ -163,17 +163,6 @@ module.exports = {
         const [base, flow, direction] = interaction.customId.split('+');
         const pageOffset = direction === 'forward' ? 1 : -1;
         const cache = await Cache.getCache(flow);
-
-        if (!cache) {
-            const replied = interaction.replied || interaction.deferred;
-
-            return interaction[replied ? 'editReply' : 'reply']({
-                content: "⚠️ **Whoops!** Looks like this request expired. Please try again.",
-                embeds: [],
-                components: [],
-                flags: MessageFlags.Ephemeral
-            });
-        }
         
         return handlePageEvents({ interaction, flow, type: cache?.type, page: cache?.page, pageOffset });
     });
