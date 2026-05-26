@@ -9,165 +9,127 @@ function pagination(items, oldPage = 0, pageOffset = 0) {
     const startIndex = newPage * itemTotal;
     const endIndex = startIndex + itemTotal;
 
-    const clamped = items.slice(startIndex, endIndex);
+    const results = items.slice(startIndex, endIndex);
     
     return {
-        clamped: clamped,
+        results: results,
         page: newPage,
-        nextPage: items.length > endIndex,
-        backPage: newPage > 0
+        hasBack: newPage > 0,
+        hasNext: items.length > endIndex
     }
 }
 
-async function createList(type, interaction, cache, pageOffset) {
-    const userId = interaction.user.id;
-    let items;
+async function searchEvents({ userId, page = 0, pageOffset = 0 }) {
+    const events = await Database.getEvents(userId);
+    const sorted = events.sort((a, b) => a.endTime - b.endTime);
 
+    const { results, page: newPage, hasNext, hasBack } = pagination(sorted, page, pageOffset);
+    const list = results.map(event => {
+        if (event.type === 'reminder') {
+            return `• 📝 **Reminder**: ${event.title} on <t:${Math.floor(event.endTime / 1000)}:f>`;
+        } else if (event.type === 'alarm') {
+            return `• ⏰ **Alarm** for <t:${Math.floor(event.endTime / 1000)}:f>`;
+        } else if (event.type === 'timer') {
+            return `• ⏲️ **Timer** for \`${event.timeString}\``;
+        }
+
+        return null;
+    });
+
+    return {
+        results: list,
+        page: newPage,
+        hasBack: hasBack,
+        hasNext: hasNext
+    }
+}
+
+async function searchPresets({ userId, page = 0, pageOffset = 0 }) {
+    const presets = await Database.getPresets(userId);
+
+    const { results, page: newPage, hasNext, hasBack } = pagination(presets, page, pageOffset);
+    const list = results.map(event => {
+        return `• 🏷️ **${event.tag}** - \`${event.timeString}\``;
+    });
+
+    return {
+        results: list,
+        page: newPage,
+        hasBack: hasBack,
+        hasNext: hasNext
+    }
+}
+
+async function search(type, { userId, page = 0, pageOffset = 0 }) {
     if(type === 'events') {
-        const unsortedEvents = await Database.getEvents(userId);
-        const userEvents = unsortedEvents.sort((a, b) => a.endTime - b.endTime);
-        items = {};
-
-        for (const event of userEvents) {
-            if (!items[event.type]) items[event.type] = [];
-
-            items[event.type].push(event);
-        }
+        return searchEvents({ userId, page, pageOffset });
     } else if(type === 'presets') {
-        items = await Database.getPresets(userId);
+        return searchPresets({ userId, page, pageOffset });
     }
 
-    const result = {};
-    if (Array.isArray(items)) {
-        const { clamped, page, nextPage, backPage } = pagination(items, cache?.page ?? 0, pageOffset);
-
-        const lines = clamped.map(event => {
-            return `• \`${event.timeString}\` [**Tag Name**: ${event.tag}]`;
-        });
-
-        return {
-            data: lines,
-            page,
-            nextPage,
-            backPage
-        };
-    } else {
-        for (const type in items) {
-            const { clamped, page, nextPage, backPage } = pagination(items[type], cache?.[type]?.page ?? 0, pageOffset);
-
-            const lines = clamped.map(event => {
-                return `• <t:${Math.floor(event.endTime / 1000)}:f> [**Event ID**: ${event.id}]`;
-            });
-
-            result[type] = {
-                data: lines,
-                page,
-                nextPage,
-                backPage
-            };
-        }
-    }
-
-    return result;
+    return null;
 }
 
-async function handlePageEvents({ type = null, client, interaction, flow = interaction.id, pageOffset = null }) {
-    const cache = await Cache.getCache(flow) ?? null;
-    const paged = await createList((type || cache?.type), interaction, cache, pageOffset ?? 0);
+async function handlePageEvents({ interaction, flow = interaction.id, type, page = 0, pageOffset = 0 }) {
     const replied = interaction.replied || interaction.deferred;
 
-    if(pageOffset !== null && cache === null) { // If this isn't the initial response (which doesn't have a page offset) and there's no cache available
-        return interaction[replied ? 'editReply' : 'reply']({
-            content: "⚠️ **Whoops!** Looks like this request expired. Please try again.",
-            embeds: [],
-            components: [],
-            flags: MessageFlags.Ephemeral
-        });
-    }
-
-    let nextPage = false;
-    let backPage = false;
-
-    const isGrouped = !('data' in paged);
-    let values;
-
-    if(isGrouped) {
-        values = [];
-
-        for (const type in paged) {
-            const lines = paged[type].data;
-            
-            if(paged[type].nextPage) nextPage = true;
-            if(paged[type].backPage) backPage = true;
-
-            values.push({
-                name: `📂 ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-                value: lines.join('\n'),
-                inline: false
-            });
-        }
-    } else {
-        const lines = paged.data;
-
-        if(paged.nextPage) nextPage = true;
-        if(paged.backPage) backPage = true;
-
-        values = lines.join('\n');
-    }
-
+    const { results, page: newPage, hasBack, hasNext } = await search(type, { userId: interaction.user.id, page, pageOffset });
+    const desc = results.join('\n');
+    page = newPage; // just in-case!
+    
     const embed = new EmbedBuilder()
-      .setTitle(type === 'events' ? "📋 Active Events" : "📂 Saved Presets")
-      .setColor(0x5865F2)
-      .setFooter({ text: `Requested by ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() })
-      .setTimestamp();
-    const buttons = new ActionRowBuilder();
+        .setTitle(type === 'events' ? "📋 Active Events" : "📂 Saved Presets")
+        .setColor(0x5865F2)
+        .setFooter({ text: `Requested by ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() })
+        .setTimestamp();
 
-    if (values.length > 0) {
-        if(isGrouped) {
-            embed.addFields(...values);
-        } else {
-            embed.setDescription(values);
-        }
-
-        buttons.addComponents(
-            new ButtonBuilder()
-                .setCustomId(`listItems+${flow}+back`)
-                .setLabel("⬅ Back")
-                .setStyle(ButtonStyle.Primary)
-                .setDisabled(!backPage)
-        );
-
-        buttons.addComponents(
-            new ButtonBuilder()
-                .setCustomId(`listItems+${flow}+forward`)
-                .setLabel("Next ➡")
-                .setStyle(ButtonStyle.Primary)
-                .setDisabled(!nextPage)
-        );
-
-        buttons.addComponents(
-            new ButtonBuilder()
-                .setCustomId(`viewItem+${type}`)
-                .setLabel(type === 'events' ? "View Event" : "View Preset")
-                .setStyle(ButtonStyle.Secondary)
-        );
-    } else {
+    if (results.length === 0) {
         if(type === 'events') {
             embed.setDescription("⚠️ **Whoops!** It looks like you don't have any active events yet.\n\nType `/` to view the commands and create a timer, alarm, or reminder.");
         } else if(type === 'presets') {
             embed.setDescription("⚠️ **Whoops!** It looks like you don't have any presets created yet.\n\nType `/presets` to view the available commands for creating a preset.");
         }
+
+        if (interaction.isMessageComponent && interaction.isMessageComponent()) {
+            return await interaction.update({ embeds: [embed], components: [] });
+        }
+
+        return await interaction[replied ? 'editReply' : 'reply']({ embeds: [embed], components: [], flags: MessageFlags.Ephemeral });
     }
 
-    const pages = Object.fromEntries(Object.entries(paged).map(([type, data]) => [type, { page: data.page }]));
+    const buttons = new ActionRowBuilder();
 
-    await Cache.setCache(flow, {
-        type: type,
-        ...pages
-    }, (60000 * 5));
+    buttons.addComponents(
+        new ButtonBuilder()
+            .setCustomId(`listItems+${flow}+back`)
+            .setLabel("⬅ Back")
+            .setStyle(ButtonStyle.Primary)
+            .setDisabled(!hasBack)
+    );
 
-    const components = buttons.components.length > 0 ? [buttons] : [];
-    await interaction[replied ? 'editReply' : 'reply']({ embeds: [embed], components, flags: MessageFlags.Ephemeral });
+    buttons.addComponents(
+        new ButtonBuilder()
+            .setCustomId(`listItems+${flow}+forward`)
+            .setLabel("Next ➡")
+            .setStyle(ButtonStyle.Primary)
+            .setDisabled(!hasNext)
+    );
+
+    buttons.addComponents(
+        new ButtonBuilder()
+            .setCustomId(`viewItem+${type}`)
+            .setLabel(type === 'events' ? "View Event" : "View Preset")
+            .setStyle(ButtonStyle.Secondary)
+    );
+
+    embed.setDescription(desc);
+    await Cache.setCache(flow, { type, page }, (60000 * 5));
+
+    if (interaction.isMessageComponent && interaction.isMessageComponent()) {
+        return await interaction.update({ embeds: [embed], components: [buttons] });
+    }
+
+    await interaction[replied ? 'editReply' : 'reply']({ embeds: [embed], components: [buttons], flags: MessageFlags.Ephemeral });
 }
 
 module.exports = {
@@ -194,14 +156,26 @@ module.exports = {
   run: async (client, interaction) => {
         const type = interaction.options.getSubcommand();
 
-        return handlePageEvents({ type, client, interaction });
+        return handlePageEvents({ interaction, type });
   },
   async register(client) {
     client.buttons.set('listItems', async interaction => {
         const [base, flow, direction] = interaction.customId.split('+');
         const pageOffset = direction === 'forward' ? 1 : -1;
+        const cache = await Cache.getCache(flow);
+
+        if (!cache) {
+            const replied = interaction.replied || interaction.deferred;
+
+            return interaction[replied ? 'editReply' : 'reply']({
+                content: "⚠️ **Whoops!** Looks like this request expired. Please try again.",
+                embeds: [],
+                components: [],
+                flags: MessageFlags.Ephemeral
+            });
+        }
         
-        return handlePageEvents({ client, interaction, flow, pageOffset });
+        return handlePageEvents({ interaction, flow, type: cache?.type, page: cache?.page, pageOffset });
     });
     
     client.buttons.set('viewItem', async interaction => {
