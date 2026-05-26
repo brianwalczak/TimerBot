@@ -45,7 +45,7 @@ module.exports = {
   },
   async register(client) {
     for (const region of Object.keys(timezone)) {
-      client.menus.set(`convert_${region.replace(/[^a-z]/gi, '')}`, async interaction => {
+      client.menus.set(`convert_${region.replace(/[^a-z]/gi, '')}`, async (interaction) => {
         const replied = interaction.replied || interaction.deferred;
 
         if(!IANAZone.isValidZone(interaction.values[0])) {
@@ -61,7 +61,7 @@ module.exports = {
       });
     }
 
-    client.modals.set('convert', async interaction => {
+    client.modals.set('convert', async (interaction) => {
         const date = interaction.fields.getTextInputValue("date");
         const time = interaction.fields.getTextInputValue("time");
         const [base, flow] = interaction.customId.split('+');

@@ -105,7 +105,7 @@ module.exports = {
     });
   },
   async register(client) {
-    client.buttons.set('ics', async interaction => { // individual exports
+    client.buttons.set('ics', async (interaction) => { // individual exports
         let [base, eventId] = interaction.customId.split('+');
         const replied = interaction.replied || interaction.deferred;
         eventId = eventId.replace('e_', ''); // prevent checking cache

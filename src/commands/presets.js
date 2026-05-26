@@ -124,7 +124,7 @@ module.exports = {
     }
   },
   async register(client) {
-    client.modals.set('createPreset', async interaction => {
+    client.modals.set('createPreset', async (interaction) => {
         const [base, flow] = interaction.customId.split('+');
 
         const hours = parseInt(interaction.fields.getTextInputValue("hours")) || 0;

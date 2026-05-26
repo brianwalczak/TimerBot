@@ -138,14 +138,14 @@ module.exports = {
     }
   },
   async register(client) {
-    client.buttons.set('tip5', i => completeTip(i, 5));
-    client.buttons.set('tip10', i => completeTip(i, 10));
-    client.buttons.set('tip15', i => completeTip(i, 15));
-    client.buttons.set('tipCustom', async interaction => {
+    client.buttons.set('tip5', (i) => completeTip(i, 5));
+    client.buttons.set('tip10', (i) => completeTip(i, 10));
+    client.buttons.set('tip15', (i) => completeTip(i, 15));
+    client.buttons.set('tipCustom', async (interaction) => {
       await interaction.showModal(Modals.tip());
     });
 
-    client.modals.set('tipCustom', async interaction => {
+    client.modals.set('tipCustom', async (interaction) => {
       const amount = parseFloat(interaction.fields.getTextInputValue("amount").replaceAll('$', ''));
 
       if(isNaN(amount) || amount <= 5) {

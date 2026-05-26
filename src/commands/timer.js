@@ -38,7 +38,7 @@ module.exports = {
 	}, (60000 * 5));
   },
   async register(client) {
-	client.modals.set('timerModal', async interaction => {
+	client.modals.set('timerModal', async (interaction) => {
 		const [base, flow] = interaction.customId.split('+');
 
 		const hours = parseInt(interaction.fields.getTextInputValue("hours")) || 0;
@@ -80,7 +80,7 @@ module.exports = {
 		});
 	});
 
-	client.buttons.set('timerConfirm', async interaction => {
+	client.buttons.set('timerConfirm', async (interaction) => {
 		const [base, flow] = interaction.customId.split('+');
 		const replied = interaction.replied || interaction.deferred;
 
@@ -106,7 +106,7 @@ module.exports = {
 		});
 	});
 
-	client.buttons.set('timerCancel', async interaction => {
+	client.buttons.set('timerCancel', async (interaction) => {
 		const [base, flow] = interaction.customId.split('+');
 
 		await interaction.deferUpdate();

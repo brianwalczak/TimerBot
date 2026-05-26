@@ -60,7 +60,7 @@ function cmdHandler(type) {
             }, (60000 * 5));
         },
         async register(client) {
-            client.modals.set(`${type}Modal`, async interaction => {
+            client.modals.set(`${type}Modal`, async (interaction) => {
                 const [base, flow] = interaction.customId.split('+');
 
                 const date = interaction.fields.getTextInputValue("date");
@@ -103,7 +103,7 @@ function cmdHandler(type) {
                 });
             });
 
-            client.buttons.set(`${type}Confirm`, async interaction => {
+            client.buttons.set(`${type}Confirm`, async (interaction) => {
                 const [base, flow] = interaction.customId.split('+');
                 const replied = interaction.replied || interaction.deferred;
                 
@@ -129,7 +129,7 @@ function cmdHandler(type) {
                 });
             });
 
-            client.buttons.set(`${type}Cancel`, async interaction => {
+            client.buttons.set(`${type}Cancel`, async (interaction) => {
                 const [base, flow] = interaction.customId.split('+');
 
                 await interaction.deferUpdate();

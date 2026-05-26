@@ -159,7 +159,7 @@ module.exports = {
         return handlePageEvents({ interaction, type });
   },
   async register(client) {
-    client.buttons.set('listItems', async interaction => {
+    client.buttons.set('listItems', async (interaction) => {
         const [base, flow, direction] = interaction.customId.split('+');
         const pageOffset = direction === 'forward' ? 1 : -1;
         const cache = await Cache.getCache(flow);
@@ -167,7 +167,7 @@ module.exports = {
         return handlePageEvents({ interaction, flow, type: cache?.type, page: cache?.page, pageOffset });
     });
     
-    client.buttons.set('viewItem', async interaction => {
+    client.buttons.set('viewItem', async (interaction) => {
         const [base, type] = interaction.customId.split('+');
 
         if(type === 'events') {
@@ -177,7 +177,7 @@ module.exports = {
         }
     });
 
-    client.modals.set('viewItem', async interaction => {
+    client.modals.set('viewItem', async (interaction) => {
         const [base, type] = interaction.customId.split('+');
         let item;
         
@@ -232,7 +232,7 @@ module.exports = {
             await interaction.reply({ embeds: [embed], components: [buttons], flags: MessageFlags.Ephemeral });
     });
 
-    client.buttons.set('deleteItem', async interaction => {
+    client.buttons.set('deleteItem', async (interaction) => {
         let [base, itemId, type] = interaction.customId.split('+');
         itemId = itemId.replace('t_', ''); // prevent checking cache
         let item;

@@ -136,7 +136,7 @@ module.exports = {
     }
   },
   async register(client) {
-    client.modals.set('admin_eval', async interaction => {
+    client.modals.set('admin_eval', async (interaction) => {
       if (!admins.includes(interaction.user.id)) {
         return interaction.reply({
           content: "❌ You do not have permission to use this command.",
@@ -179,7 +179,7 @@ module.exports = {
       }
     });
 
-    client.buttons.set('admin_premium', async interaction => {
+    client.buttons.set('admin_premium', async (interaction) => {
       if (!admins.includes(interaction.user.id)) {
         return interaction.reply({
           content: "❌ You do not have permission to use this command.",
