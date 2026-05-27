@@ -76,36 +76,6 @@ const Modals = {
     modal.addComponents(new ActionRowBuilder().addComponents(titleInput), new ActionRowBuilder().addComponents(descriptionInput));
     return modal;
   },
-  viewEvent() {
-    const modal = new ModalBuilder()
-      .setCustomId('viewItem+events')
-      .setTitle('View Event');
-
-    const eventInput = new TextInputBuilder()
-      .setCustomId('eventId')
-      .setLabel('Enter the Event ID')
-      .setStyle(TextInputStyle.Short)
-      .setPlaceholder('e.g. 01JXPC1D33502Q9QCFA525ZVW1')
-      .setRequired(true);
-
-    modal.addComponents(new ActionRowBuilder().addComponents(eventInput));
-    return modal;
-  },
-  viewPreset() {
-    const modal = new ModalBuilder()
-      .setCustomId('viewItem+presets')
-      .setTitle('View Preset');
-
-    const tagInput = new TextInputBuilder()
-      .setCustomId('tag')
-      .setLabel('Enter the preset tag')
-      .setStyle(TextInputStyle.Short)
-      .setPlaceholder('e.g. mypreset')
-      .setRequired(true);
-
-    modal.addComponents(new ActionRowBuilder().addComponents(tagInput));
-    return modal;
-  },
   tip() {
     const modal = new ModalBuilder()
       .setCustomId('tipCustom')

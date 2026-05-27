@@ -1,6 +1,6 @@
-const { SlashCommandBuilder, EmbedBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ApplicationIntegrationType, InteractionContextType } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ApplicationIntegrationType, InteractionContextType } = require("discord.js");
 const { Cache, Database } = require('../ipc.js');
-const { Modals } = require('../elements.js');
+const { createDateTimeString } = require('../utils.js');
 const itemTotal = 5;
 
 function pagination(items, oldPage = 0, pageOffset = 0) {
@@ -19,7 +19,7 @@ function pagination(items, oldPage = 0, pageOffset = 0) {
     }
 }
 
-async function searchEvents({ userId, page = 0, pageOffset = 0 }) {
+async function searchEvents({ userId, tz = 'UTC', page = 0, pageOffset = 0 }) {
     const events = await Database.getEvents(userId);
     const sorted = events.sort((a, b) => a.endTime - b.endTime);
 
@@ -36,8 +36,31 @@ async function searchEvents({ userId, page = 0, pageOffset = 0 }) {
         return null;
     });
 
+    const options = results.map(event => {
+        let label;
+        let description;
+
+        if (event.type === 'reminder') {
+            label = `📝 Reminder: ${event.title}`;
+            description = createDateTimeString(event.endTime, tz);
+        } else if (event.type === 'alarm') {
+            label = '⏰ Alarm';
+            description = createDateTimeString(event.endTime, tz);
+        } else if (event.type === 'timer') {
+            label = '⏱️ Timer';
+            description = 'Duration: ' + event.timeString;
+        }
+
+        // 100 char limit :[
+        return new StringSelectMenuOptionBuilder()
+            .setLabel(label.slice(0, 100))
+            .setValue(event.id)
+            .setDescription(description.slice(0, 100));
+    });
+
     return {
         results: list,
+        options: options,
         page: newPage,
         hasBack: hasBack,
         hasNext: hasNext
@@ -52,17 +75,25 @@ async function searchPresets({ userId, page = 0, pageOffset = 0 }) {
         return `• 🏷️ **${event.tag}** - \`${event.timeString}\``;
     });
 
+    // 100 char limit :[
+    const options = results.map(preset => new StringSelectMenuOptionBuilder()
+        .setLabel('🏷️ ' + preset.tag.slice(0, 80))
+        .setValue(preset.tag)
+        .setDescription(`Duration: ${preset.timeString}`.slice(0, 100))
+    );
+
     return {
         results: list,
+        options: options,
         page: newPage,
         hasBack: hasBack,
         hasNext: hasNext
     }
 }
 
-async function search(type, { userId, page = 0, pageOffset = 0 }) {
+async function search(type, { userId, tz = 'UTC', page = 0, pageOffset = 0 }) {
     if(type === 'events') {
-        return searchEvents({ userId, page, pageOffset });
+        return searchEvents({ userId, tz, page, pageOffset });
     } else if(type === 'presets') {
         return searchPresets({ userId, page, pageOffset });
     }
@@ -72,8 +103,10 @@ async function search(type, { userId, page = 0, pageOffset = 0 }) {
 
 async function handlePageEvents({ interaction, flow = interaction.id, type, page = 0, pageOffset = 0 }) {
     const replied = interaction.replied || interaction.deferred;
+    const user = await Database.getUser(interaction.user.id);
+    const tz = user?.timezone || 'UTC';
 
-    const { results, page: newPage, hasBack, hasNext } = await search(type, { userId: interaction.user.id, page, pageOffset });
+    const { results, options, page: newPage, hasBack, hasNext } = await search(type, { userId: interaction.user.id, tz, page, pageOffset });
     const desc = results.join('\n');
     page = newPage; // just in-case!
     
@@ -91,12 +124,13 @@ async function handlePageEvents({ interaction, flow = interaction.id, type, page
         }
 
         if (interaction.isMessageComponent && interaction.isMessageComponent()) {
-            return await interaction.update({ embeds: [embed], components: [] });
+            return await interaction.update({ embeds: [embed], components: [], flags: MessageFlags.Ephemeral });
         }
 
         return await interaction[replied ? 'editReply' : 'reply']({ embeds: [embed], components: [], flags: MessageFlags.Ephemeral });
     }
 
+    const components = [];
     const buttons = new ActionRowBuilder();
 
     buttons.addComponents(
@@ -115,21 +149,25 @@ async function handlePageEvents({ interaction, flow = interaction.id, type, page
             .setDisabled(!hasNext)
     );
 
-    buttons.addComponents(
-        new ButtonBuilder()
-            .setCustomId(`viewItem+${type}`)
-            .setLabel(type === 'events' ? "View Event" : "View Preset")
-            .setStyle(ButtonStyle.Secondary)
-    );
+    components.push(buttons);
 
-    embed.setDescription(desc);
-    await Cache.setCache(flow, { type, page }, (60000 * 5));
-
-    if (interaction.isMessageComponent && interaction.isMessageComponent()) {
-        return await interaction.update({ embeds: [embed], components: [buttons] });
+    if (options.length > 0) {
+        components.push(new ActionRowBuilder().addComponents(
+            new StringSelectMenuBuilder()
+                .setCustomId(`selectItem+${flow}+${type}`)
+                .setPlaceholder(type === 'events' ? 'Select an event to view' : 'Select a preset to view')
+                .addOptions(options)
+        ));
     }
 
-    await interaction[replied ? 'editReply' : 'reply']({ embeds: [embed], components: [buttons], flags: MessageFlags.Ephemeral });
+    embed.setDescription(desc);
+    await Cache.setCache(flow, { userId: interaction.user.id, type, page }, (60000 * 5));
+
+    if (interaction.isMessageComponent && interaction.isMessageComponent()) {
+        return await interaction.update({ embeds: [embed], components, flags: MessageFlags.Ephemeral });
+    }
+
+    await interaction[replied ? 'editReply' : 'reply']({ embeds: [embed], components, flags: MessageFlags.Ephemeral });
 }
 
 module.exports = {
@@ -166,31 +204,29 @@ module.exports = {
         return handlePageEvents({ interaction, flow, type, page, pageOffset });
     });
     
-    client.buttons.set('viewItem', async (interaction) => {
-        const [base, type] = interaction.customId.split('+');
-
-        if(type === 'events') {
-            return await interaction.showModal(Modals.viewEvent());
-        } else if(type === 'presets') {
-            return await interaction.showModal(Modals.viewPreset());
-        }
-    });
-
-    client.modals.set('viewItem', async (interaction) => {
-        const [base, type] = interaction.customId.split('+');
+    client.menus.set('selectItem', async (interaction) => {
+        const [base, flow, type] = interaction.customId.split('+');
         let item;
+        const user = await Database.getUser(interaction.user.id);
+        const tz = user?.timezone || 'UTC';
+        const selectedValue = interaction.values[0];
         
         if(type === 'events') {
-            const eventId = interaction.fields.getTextInputValue("eventId");
-            item = await Database.getEvent(eventId);
+            item = await Database.getEvent(selectedValue);
         } else if(type === 'presets') {
-            const tag = interaction.fields.getTextInputValue("tag");
-            item = await Database.getPreset(interaction.user.id, tag);
+            item = await Database.getPreset(interaction.user.id, selectedValue);
         }
 
         if (!item) {
             return interaction.reply({
-                content: `⚠️ **Whoops!** It looks like ${type === 'events' ? 'an event' : 'a preset'} wasn't found with this ${type === 'events' ? 'ID' : 'tag'}.`,
+                content: `⚠️ **Whoops!** It looks like ${type === 'events' ? 'an event' : 'a preset'} no longer exists.`,
+                flags: MessageFlags.Ephemeral
+            });
+        }
+
+        if (type === 'events' && item.userId !== interaction.user.id) {
+            return interaction.reply({
+                content: `⚠️ **Whoops!** You do not have permission to view this event.`,
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -223,7 +259,7 @@ module.exports = {
             }
 
             const buttons = new ActionRowBuilder().addComponents(new ButtonBuilder()
-                .setCustomId(`deleteItem+t_${type === 'events' ? item.id : item.tag}+${type}`)
+                .setCustomId(`deleteItem+${flow}+t_${type === 'events' ? item.id : item.tag}+${type}`)
                 .setLabel(`Delete ${type === 'events' ? 'Event' : 'Preset'}`)
                 .setStyle(ButtonStyle.Danger),
             );
@@ -232,7 +268,7 @@ module.exports = {
     });
 
     client.buttons.set('deleteItem', async (interaction) => {
-        let [base, itemId, type] = interaction.customId.split('+');
+        let [base, flow, itemId, type] = interaction.customId.split('+');
         itemId = itemId.replace('t_', ''); // prevent checking cache
         let item;
 
@@ -245,6 +281,13 @@ module.exports = {
         if (!item) {
             return interaction.reply({
                 content: `⚠️ **Whoops!** It looks like ${type === 'events' ? 'an event' : 'a preset'} wasn't found with this ${type === 'events' ? 'ID' : 'tag'}.`,
+                flags: MessageFlags.Ephemeral
+            });
+        }
+
+        if (type === 'events' && item.userId !== interaction.user.id) {
+            return interaction.reply({
+                content: `⚠️ **Whoops!** You do not have permission to delete this event.`,
                 flags: MessageFlags.Ephemeral
             });
         }
