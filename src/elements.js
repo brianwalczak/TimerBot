@@ -183,7 +183,7 @@ const Embeds = {
       .setColor(0xFFD700)
       .setDescription([
         `Thank you so much for your generous${price ? ` **$${price}**` : ''} tip! As a solo developer, tips like these help me keep building and pursuing my passion for coding.\n`,
-        "Your support allows me to continue maintaining the server costs for this bot and adding new features. Timer Bot wouldn't be possible without awesome people like you! ✌️\n",
+        "Your support allows me to continue covering the server costs for this bot and adding new features. Timer Bot wouldn't be possible without awesome people like you! ✌️\n",
         `If you have any issues or questions, feel free to reach out in the support server.`,
         `Enjoy the extra features and thank you again! Your support means a lot (seriously).`
       ].join("\n"));
